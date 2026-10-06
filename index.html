@@ -44,7 +44,6 @@ footer{text-align:center;color:#8b8168;font-size:12px;padding:26px 0}
     <input id="code" placeholder="邀请码">
     <p><button class="btn" onclick="enter()">进入</button></p>
     <p id="gateErr" style="color:#b4552d;font-size:14px;min-height:18px"></p>
-    <p class="muted">演示邀请码：demo</p>
   </div>
 </div>
 
@@ -57,41 +56,35 @@ footer{text-align:center;color:#8b8168;font-size:12px;padding:26px 0}
     <nav id="nav"></nav>
     <div id="view"></div>
   </div>
-  <footer>本页为演示版，资料保存在本机；接入数据库后全家族共享。</footer>
+  <footer>资料已保存在云端数据库，全家族共享。</footer>
 </div>
 
 <script>
-const FAMILY = { name:"福建林氏", access:"demo" };
-
-const ANC = [
- { id:1, name:"林公讳春山", gender:"男", birth:"1912", death:"1978", native:"福建莆田", gen:"第三代 · 长房", parent:null,
-   bio:"务农持家，勤俭一生。抗战年间曾组织乡邻修桥铺路。",
-   gname:"莆田南山公墓", glat:25.4312, glng:119.0078, gnote:"东区第 3 排 12 号，坐北朝南" },
- { id:2, name:"林母陈氏", gender:"女", birth:"1915", death:"1990", native:"福建莆田", gen:"第三代 · 长房", parent:null,
-   bio:"心地慈厚，善女红，育有四子二女。",
-   gname:"莆田南山公墓", glat:25.4314, glng:119.0081, gnote:"与其夫合葬" },
- { id:3, name:"林公讳建国", gender:"男", birth:"1940", death:"2015", native:"福建福州", gen:"第四代 · 长子", parent:1,
-   bio:"教书育人四十载，退休后仍义务为村里孩子补课。",
-   gname:"福州青松园", glat:26.0745, glng:119.2965, gnote:"A 区 6 排 8 号" },
- { id:4, name:"林母王氏", gender:"女", birth:"1943", death:"", native:"福建福州", gen:"第四代 · 长媳", parent:null,
-   bio:"健在，现居福州。", gname:"", glat:null, glng:null, gnote:"" }
-];
-
-let TRI = [
- { aid:1, kind:"message", author:"孙 林小满", content:"清明将近，遥寄思念。", at:"2026-04-03 09:12" },
- { aid:1, kind:"flower", author:"长子", content:"献上一束白菊。", at:"2026-04-04 08:30" },
- { aid:3, kind:"message", author:"学生 张某", content:"恩师千古，教诲长存。", at:"2025-09-10 10:00" }
-];
-
+const API = "https://family-api.843302042.workers.dev";
+const SLUG = "linjia";
+let DATA = { family:null, ancestors:[], tributes:[] };
 let view = "home";
 
-function enter(){
+async function enter(){
   const v = document.getElementById("code").value.trim();
-  if(v !== FAMILY.access){ document.getElementById("gateErr").textContent = "邀请码不正确，请向家人确认。"; return; }
-  document.getElementById("gate").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  document.getElementById("famName").textContent = FAMILY.name + " · 纪念";
-  renderNav(); render();
+  const el = document.getElementById("gateErr");
+  el.textContent = "正在验证…";
+  try{
+    const d = await load();
+    if(v !== d.family.access_code){ el.textContent = "邀请码不正确，请向家人确认。"; return; }
+    DATA = d;
+    document.getElementById("gate").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    document.getElementById("famName").textContent = d.family.name + " · 纪念";
+    renderNav(); render();
+  }catch(e){ el.textContent = "读取失败：" + e; }
+}
+
+async function load(){
+  const r = await fetch(API + "/api/data?family=" + SLUG);
+  const d = await r.json();
+  if(!r.ok || d.error) throw (d.error || r.status);
+  return d;
 }
 
 const NAVS = [ ["home","先人纪念"], ["tree","家族关系"], ["grave","墓位导航"], ["proxy","代祭预约"] ];
@@ -108,20 +101,22 @@ function render(){
 }
 
 function icon(k){ return k==="flower"?"🌼":k==="candle"?"🕯":"✍"; }
+function esc(s){ return String(s==null?"":s).replace(/</g,"&lt;"); }
 
 function viewHome(){
-  return '<h2>先人纪念</h2><div class="grid">' + ANC.map(function(a){
-    const ts = TRI.filter(function(t){ return t.aid===a.id; });
+  if(!DATA.ancestors.length) return '<h2>先人纪念</h2><div class="card"><p class="muted">还没有录入先人资料，请在数据库中添加。</p></div>';
+  return '<h2>先人纪念</h2><div class="grid">' + DATA.ancestors.map(function(a){
+    const ts = DATA.tributes.filter(function(t){ return t.ancestor_id===a.id; });
     const c = { flower:0, candle:0, message:0 };
-    ts.forEach(function(t){ c[t.kind]++; });
+    ts.forEach(function(t){ if(c[t.kind]!=null) c[t.kind]++; });
     let h = '<div class="card">';
-    h += '<h3>'+a.name+'</h3>';
-    h += '<div class="muted">'+a.gender+' · '+(a.birth||"?")+(a.death?("—"+a.death):"（健在）")+' · '+a.native+'</div>';
-    h += '<div class="muted">'+a.gen+'</div>';
-    h += '<p class="bio">'+a.bio+'</p>';
-    if(a.gname){
-      h += '<div class="grave"><b>墓位：</b>'+a.gname+'<br>'+a.gnote+'<br>';
-      h += '<a href="https://uri.amap.com/marker?position='+a.glng+','+a.glat+'&name='+encodeURIComponent(a.name)+'" target="_blank">一键导航前往 →</a></div>';
+    h += '<h3>'+esc(a.name)+'</h3>';
+    h += '<div class="muted">'+esc(a.gender)+' · '+esc(a.birth_date||"?")+(a.death_date?("—"+esc(a.death_date)):"（健在）")+' · '+esc(a.native_place)+'</div>';
+    h += '<div class="muted">'+esc(a.generation)+'</div>';
+    h += '<p class="bio">'+esc(a.biography)+'</p>';
+    if(a.grave_name){
+      h += '<div class="grave"><b>墓位：</b>'+esc(a.grave_name)+'<br>'+esc(a.grave_note)+'<br>';
+      h += '<a href="https://uri.amap.com/marker?position='+a.grave_lng+','+a.grave_lat+'&name='+encodeURIComponent(a.name)+'" target="_blank">一键导航前往 →</a></div>';
     }
     h += '<div class="acts">';
     h += '<button onclick="tribute('+a.id+',\'flower\')">🌼 献花 ('+c.flower+')</button>';
@@ -129,8 +124,8 @@ function viewHome(){
     h += '<button onclick="tribute('+a.id+',\'message\')">✍ 留言 ('+c.message+')</button>';
     h += '</div>';
     if(ts.length){
-      h += '<div>' + ts.slice(-3).reverse().map(function(t){
-        return '<div class="item">'+icon(t.kind)+' <b>'+t.author+'</b>：'+t.content+' <span class="muted">'+t.at+'</span></div>';
+      h += '<div>' + ts.slice(0,3).map(function(t){
+        return '<div class="item">'+icon(t.kind)+' <b>'+esc(t.author)+'</b>：'+esc(t.content)+' <span class="muted">'+esc(t.created_at)+'</span></div>';
       }).join("") + '</div>';
     }
     h += '</div>';
@@ -138,37 +133,40 @@ function viewHome(){
   }).join("") + '</div>';
 }
 
-function nowStr(){
-  const d = new Date();
-  const p = function(n){ return String(n).padStart(2,"0"); };
-  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
-}
-
-function tribute(id, kind){
+async function tribute(id, kind){
   let content = "献上一束花。";
   if(kind==="candle") content = "点一支心灯。";
   if(kind==="message"){ content = prompt("写下您的追思：")||""; if(!content) return; }
-  TRI.push({ aid:id, kind:kind, author:"访客", content:content, at:nowStr() });
-  render();
+  try{
+    const r = await fetch(API + "/api/tribute", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ ancestor_id:id, kind:kind, author:"访客", content:content })
+    });
+    if(!r.ok) throw "post failed";
+    DATA = await load();
+    render();
+  }catch(e){ alert("提交失败，请稍后再试。"); }
 }
 
 function viewTree(){
+  const A = DATA.ancestors;
   function node(a){
-    const kids = ANC.filter(function(x){ return x.parent===a.id; });
-    return '<div>'+a.name+' <span class="muted">('+a.gen+')</span></div>'
+    const kids = A.filter(function(x){ return x.parent_id===a.id; });
+    return '<div>'+esc(a.name)+' <span class="muted">('+esc(a.generation)+')</span></div>'
       + (kids.length ? '<div class="g">'+kids.map(node).join("")+'</div>' : '');
   }
-  const roots = ANC.filter(function(a){ return !a.parent; });
-  return '<h2>家族关系</h2><div class="tree">'+roots.map(node).join("")+'</div>'
-    + '<p class="muted" style="margin-top:18px">演示数据仅示意层级；接入数据库后可完整维护每一代。</p>';
+  const roots = A.filter(function(a){ return !a.parent_id; });
+  if(!roots.length) return '<h2>家族关系</h2><div class="card"><p class="muted">还没有先人资料。</p></div>';
+  return '<h2>家族关系</h2><div class="tree">'+roots.map(node).join("")+'</div>';
 }
 
 function viewGrave(){
-  const list = ANC.filter(function(a){ return a.gname; });
+  const list = DATA.ancestors.filter(function(a){ return a.grave_name; });
+  if(!list.length) return '<h2>墓位导航</h2><div class="card"><p class="muted">还没有录入墓位信息。</p></div>';
   return '<h2>墓位导航</h2><div class="grid">' + list.map(function(a){
-    return '<div class="card"><h3>'+a.name+'</h3><div class="muted">'+a.gname+'</div>'
-      + '<div class="grave">'+(a.gnote||"位置待补充")+'<br>'
-      + '<a href="https://uri.amap.com/marker?position='+a.glng+','+a.glat+'&name='+encodeURIComponent(a.name+"墓位")+'" target="_blank">高德导航 →</a></div></div>';
+    return '<div class="card"><h3>'+esc(a.name)+'</h3><div class="muted">'+esc(a.grave_name)+'</div>'
+      + '<div class="grave">'+esc(a.grave_note||"位置待补充")+'<br>'
+      + '<a href="https://uri.amap.com/marker?position='+a.grave_lng+','+a.grave_lat+'&name='+encodeURIComponent(a.name+"墓位")+'" target="_blank">高德导航 →</a></div></div>';
   }).join("") + '</div>';
 }
 
@@ -177,7 +175,7 @@ function viewProxy(){
   h += '<p class="muted">远在他乡或不便前往时，可在此登记，由家族指派的代祭人代为献花追思。</p>';
   h += '<label>您的称呼<input id="p_name" placeholder="如：林小满"></label>';
   h += '<label>联系方式<input id="p_contact" placeholder="手机 / 微信"></label>';
-  h += '<label>想代祭的先人<select id="p_anc">' + ANC.map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join("") + '</select></label>';
+  h += '<label>想代祭的先人<select id="p_anc">' + DATA.ancestors.map(function(a){ return '<option value="'+a.id+'">'+esc(a.name)+'</option>'; }).join("") + '</select></label>';
   h += '<label>希望日期<input id="p_date" placeholder="如：2026-04-05"></label>';
   h += '<label>心愿或要求<textarea id="p_wish" rows="3"></textarea></label>';
   h += '<p><button class="btn" onclick="submitProxy()">提交登记</button></p>';
@@ -185,9 +183,25 @@ function viewProxy(){
   return h;
 }
 
-function submitProxy(){
+async function submitProxy(){
   const n = document.getElementById("p_name").value.trim();
-  document.getElementById("p_msg").textContent = n ? "已登记（演示版仅保存在本机，接入数据库后将真实提交）。" : "请先填写您的称呼。";
+  const msg = document.getElementById("p_msg");
+  if(!n){ msg.textContent = "请先填写您的称呼。"; return; }
+  msg.textContent = "提交中…";
+  try{
+    const r = await fetch(API + "/api/proxy", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        family_id: DATA.family.id,
+        ancestor_id: document.getElementById("p_anc").value || null,
+        contact: document.getElementById("p_contact").value.trim(),
+        wish: document.getElementById("p_wish").value.trim(),
+        preferred_date: document.getElementById("p_date").value.trim()
+      })
+    });
+    if(!r.ok) throw "post failed";
+    msg.textContent = "已登记，我们会尽快联系您。";
+  }catch(e){ msg.textContent = "提交失败，请稍后再试。"; }
 }
 </script>
 </body>
