@@ -3,68 +3,275 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>家族纪念</title>
+<title>家族纪念 · 慎终追远</title>
 <style>
-:root{--bg:#f7f2e8;--card:#fffdf9;--ink:#3c3428;--gold:#9c7a3c;--line:#e6dcc8}
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
-.wrap{max-width:960px;margin:0 auto;padding:20px}
-header{text-align:center;padding:26px 0 10px}
-h1{margin:.2em 0;font-size:26px;letter-spacing:3px}
-header p{margin:0;color:var(--gold);font-size:14px}
-nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0}
-nav button{background:#fff;border:1px solid var(--line);padding:8px 16px;border-radius:20px;color:var(--ink);cursor:pointer;font-size:14px}
-nav button.on{background:var(--gold);color:#fff;border-color:var(--gold)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.03)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-h3{margin:.2em 0;font-size:18px}
-.muted{color:#8b8168;font-size:13px}
-.bio{font-size:14px;line-height:1.7}
-.grave{background:#faf6ee;border-radius:10px;padding:10px;font-size:13px;margin-top:10px;line-height:1.7}
-.grave a{color:var(--gold);font-weight:600;text-decoration:none}
-.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.acts button{background:#fff;border:1px solid var(--line);border-radius:18px;padding:6px 12px;cursor:pointer;font-size:13px}
-.item{border-top:1px dashed var(--line);padding:8px 0;font-size:13px}
-.tree .g{margin-left:18px;border-left:1px dashed var(--line);padding-left:14px}
-label{display:block;margin:10px 0;font-size:14px}
-input,select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;margin-top:4px}
-.btn{background:var(--gold);color:#fff;border:0;border-radius:22px;padding:10px 26px;font-size:15px;cursor:pointer}
-#gate{display:flex;align-items:center;justify-content:center;min-height:80vh}
-#gate .card{max-width:360px;width:90%;text-align:center}
-#gate input{text-align:center;letter-spacing:2px}
+:root{
+  --bg:#f4efe4; --paper:#fffdf8; --ink:#2c2822; --sub:#7d735f;
+  --gold:#8a6d34; --gold-l:#b8945a; --line:#e0d5bd;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Songti SC","STSong",'Noto Serif SC',Georgia,"Microsoft YaHei",serif;
+  background:var(--bg); color:var(--ink); line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
 .hidden{display:none}
-footer{text-align:center;color:#8b8168;font-size:12px;padding:26px 0}
+
+/* ===== 邀请码门 ===== */
+#gate{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(rgba(30,26,20,.62),rgba(30,26,20,.78)),
+             url('https://cdn.tokengo.love/sha256/9e/2b3aa9f5ed9183b7c8ca20cea1e481543bf7a7f50f0d34833a84baa002d062.png.q95.jpg') center/cover;
+}
+#gate .box{
+  width:340px;max-width:88vw;text-align:center;padding:44px 32px;
+  background:rgba(255,253,248,.96);border:1px solid var(--gold-l);
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+#gate h2{font-size:24px;letter-spacing:6px;font-weight:600;margin-bottom:6px}
+#gate .sub{color:var(--sub);font-size:13px;letter-spacing:2px;margin-bottom:22px}
+#gate input{
+  width:100%;padding:11px;text-align:center;letter-spacing:4px;font-size:15px;
+  border:1px solid var(--line);background:#fffdf8;font-family:inherit;
+}
+#gate input:focus{outline:none;border-color:var(--gold-l)}
+#gate .go{
+  margin-top:16px;width:100%;padding:11px;cursor:pointer;font-family:inherit;
+  background:var(--gold);color:#fff;border:0;letter-spacing:4px;font-size:15px;
+  transition:.25s;
+}
+#gate .go:hover{background:var(--gold-l)}
+#gateErr{color:#a8452a;font-size:13px;min-height:20px;margin-top:12px}
+
+/* ===== 首屏主视觉 ===== */
+.hero{
+  position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;color:#fff;overflow:hidden;
+  background:linear-gradient(rgba(28,24,18,.42),rgba(28,24,18,.62)),
+             url('https://cdn.tokengo.love/sha256/9e/2b3aa9f5ed9183b7c8ca20cea1e481543bf7a7f50f0d34833a84baa002d062.png.q95.jpg') center/cover fixed;
+}
+.hero .inner{padding:0 24px;animation:fade 1.6s ease}
+@keyframes fade{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero .en{font-size:12px;letter-spacing:8px;color:rgba(255,255,255,.72);margin-bottom:14px}
+.hero h1{font-size:clamp(34px,6vw,64px);letter-spacing:14px;font-weight:600;text-shadow:0 4px 28px rgba(0,0,0,.5)}
+.hero .line{width:64px;height:1px;background:var(--gold-l);margin:26px auto}
+.hero .motto{font-size:clamp(14px,2vw,18px);letter-spacing:6px;color:rgba(255,255,255,.9)}
+.hero .scroll{
+  position:absolute;bottom:38px;left:50%;transform:translateX(-50%);
+  font-size:12px;letter-spacing:3px;color:rgba(255,255,255,.8);
+}
+.hero .scroll span{display:block;font-size:18px;margin-top:6px;animation:down 1.8s infinite}
+@keyframes down{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* ===== 顶部导航 ===== */
+#topnav{
+  position:fixed;top:0;left:0;right:0;z-index:60;
+  background:rgba(44,40,34,.94);backdrop-filter:blur(8px);
+  transform:translateY(-100%);transition:transform .4s;
+  border-bottom:1px solid rgba(184,148,90,.35);
+}
+#topnav.show{transform:none}
+#topnav .bar{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 22px}
+#topnav .brand{color:#f3ecdd;font-size:17px;letter-spacing:5px}
+#topnav .links{display:flex;gap:26px}
+#topnav a{color:rgba(243,236,221,.8);text-decoration:none;font-size:14px;letter-spacing:2px;transition:.25s}
+#topnav a:hover{color:var(--gold-l)}
+
+/* ===== 内容索引 ===== */
+.index{background:var(--ink);color:#f3ecdd;padding:76px 0}
+.index .head{text-align:center;margin-bottom:44px}
+.index .head .en{font-size:11px;letter-spacing:6px;color:var(--gold-l)}
+.index .head h2{font-size:24px;letter-spacing:8px;font-weight:600;margin-top:10px}
+.index .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:rgba(184,148,90,.28);border:1px solid rgba(184,148,90,.28)}
+.index .c{
+  background:var(--ink);padding:38px 24px;text-align:center;cursor:pointer;transition:.3s;
+}
+.index .c:hover{background:#39332a}
+.index .c .no{font-size:13px;color:var(--gold-l);letter-spacing:2px}
+.index .c .t{font-size:19px;letter-spacing:5px;margin:12px 0 8px}
+.index .c .d{font-size:12px;color:rgba(243,236,221,.55);letter-spacing:1px}
+
+/* ===== 章节 ===== */
+section.block{padding:78px 0}
+section.block.alt{background:#efe8da}
+.sec-head{text-align:center;margin-bottom:46px}
+.sec-head .en{font-size:11px;letter-spacing:6px;color:var(--gold)}
+.sec-head h2{font-size:27px;letter-spacing:9px;font-weight:600;margin:12px 0 10px}
+.sec-head .rule{width:52px;height:1px;background:var(--gold-l);margin:14px auto}
+.sec-head .desc{font-size:13px;color:var(--sub);letter-spacing:2px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}
+.card{
+  background:var(--paper);border:1px solid var(--line);padding:26px;
+  position:relative;transition:.3s;
+}
+.card:hover{box-shadow:0 12px 34px rgba(44,40,34,.12);transform:translateY(-3px)}
+.seal{
+  width:44px;height:44px;border:1px solid var(--gold-l);color:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;letter-spacing:0;margin-bottom:16px;background:#fbf7ee;
+}
+.card h3{font-size:20px;letter-spacing:3px;font-weight:600;margin-bottom:8px}
+.meta{font-size:12.5px;color:var(--sub);letter-spacing:1px;margin-bottom:14px}
+.bio{font-size:14px;color:#4a4438;margin-bottom:16px}
+.grave{
+  background:#f7f2e6;border-left:2px solid var(--gold-l);padding:12px 14px;
+  font-size:13px;color:#5a5344;margin-bottom:16px;
+}
+.grave a{color:var(--gold);text-decoration:none;font-weight:600}
+.grave a:hover{color:var(--gold-l)}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.acts button{
+  background:#fff;border:1px solid var(--line);padding:7px 14px;cursor:pointer;
+  font-family:inherit;font-size:13px;color:#5a5344;transition:.25s;
+}
+.acts button:hover{border-color:var(--gold-l);color:var(--gold)}
+.logs{margin-top:16px;border-top:1px dashed var(--line);padding-top:12px}
+.logs .row{font-size:13px;color:#5a5344;padding:5px 0}
+.logs .row .t{color:#9a9078;font-size:12px;margin-left:6px}
+
+/* 世系 */
+.tree .node{padding:6px 0}
+.tree .kids{margin-left:22px;border-left:1px dashed var(--line);padding-left:20px}
+.tree .node .g{color:var(--sub);font-size:12px;margin-left:8px}
+
+/* 表单 */
+.form{background:var(--paper);border:1px solid var(--line);padding:30px;max-width:600px;margin:0 auto}
+.form label{display:block;font-size:14px;margin-bottom:18px;color:#4a4438}
+.form input,.form select,.form textarea{
+  width:100%;padding:10px;margin-top:7px;border:1px solid var(--line);
+  background:#fffdf8;font-family:inherit;font-size:14px;color:var(--ink);
+}
+.form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:var(--gold-l)}
+.form .submit{
+  background:var(--gold);color:#fff;border:0;padding:12px 34px;cursor:pointer;
+  font-family:inherit;font-size:15px;letter-spacing:5px;transition:.25s;
+}
+.form .submit:hover{background:var(--gold-l)}
+.form .msg{font-size:13px;color:var(--gold);margin-top:12px;min-height:20px}
+.empty{text-align:center;color:var(--sub);font-size:14px;padding:40px 0}
+
+footer{background:var(--ink);color:rgba(243,236,221,.6);text-align:center;padding:40px 22px;font-size:12.5px;letter-spacing:2px}
+footer .brand{color:var(--gold-l);font-size:15px;letter-spacing:6px;margin-bottom:10px}
 </style>
 </head>
 <body>
+
+<!-- 邀请码 -->
 <div id="gate">
-  <div class="card">
-    <h2 style="margin-top:0">家族纪念</h2>
-    <p class="muted">请输入家族邀请码</p>
-    <input id="code" placeholder="邀请码">
-    <p><button class="btn" onclick="enter()">进入</button></p>
-    <p id="gateErr" style="color:#b4552d;font-size:14px;min-height:18px"></p>
+  <div class="box">
+    <h2>家族纪念</h2>
+    <p class="sub">MEMORIAL</p>
+    <input id="code" placeholder="请输入家族邀请码" autocomplete="off">
+    <button class="go" onclick="enter()">进 入</button>
+    <p id="gateErr"></p>
   </div>
 </div>
 
-<div id="app" class="hidden">
-  <header>
-    <h1 id="famName">家族纪念</h1>
-    <p>慎终追远 · 民德归厚</p>
-  </header>
-  <div class="wrap">
-    <nav id="nav"></nav>
-    <div id="view"></div>
+<!-- 顶部导航 -->
+<div id="topnav">
+  <div class="bar">
+    <div class="brand" id="brandName">家族纪念</div>
+    <div class="links">
+      <a href="#s-home">先人纪念</a>
+      <a href="#s-tree">家族世系</a>
+      <a href="#s-grave">墓园导航</a>
+      <a href="#s-proxy">代祭预约</a>
+    </div>
   </div>
-  <footer>资料已保存在云端数据库，全家族共享。</footer>
 </div>
+
+<!-- 首屏 -->
+<header class="hero">
+  <div class="inner">
+    <div class="en">FAMILY MEMORIAL</div>
+    <h1 id="heroName">家族纪念</h1>
+    <div class="line"></div>
+    <div class="motto">慎终追远 · 民德归厚</div>
+  </div>
+  <div class="scroll">向下浏览<span>﹀</span></div>
+</header>
+
+<!-- 内容索引 -->
+<div class="index">
+  <div class="head">
+    <div class="en">CONTENTS</div>
+    <h2>内容索引</h2>
+  </div>
+  <div class="cards">
+    <div class="c" onclick="jump('s-home')"><div class="no">壹</div><div class="t">先人纪念</div><div class="d">生平 · 献花 · 追思</div></div>
+    <div class="c" onclick="jump('s-tree')"><div class="no">貳</div><div class="t">家族世系</div><div class="d">代际 · 血脉 · 传承</div></div>
+    <div class="c" onclick="jump('s-grave')"><div class="no">叁</div><div class="t">墓园导航</div><div class="d">定位 · 坐标 · 前往</div></div>
+    <div class="c" onclick="jump('s-proxy')"><div class="no">肆</div><div class="t">代祭预约</div><div class="d">遥祭 · 代办 · 心愿</div></div>
+  </div>
+</div>
+
+<!-- 先人纪念 -->
+<section class="block" id="s-home">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="en">ANCESTORS</div>
+      <h2>先人纪念</h2>
+      <div class="rule"></div>
+      <div class="desc">铭记其名 · 追思其德</div>
+    </div>
+    <div id="viewHome"></div>
+  </div>
+</section>
+
+<!-- 家族世系 -->
+<section class="block alt" id="s-tree">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="en">GENEALOGY</div>
+      <h2>家族世系</h2>
+      <div class="rule"></div>
+      <div class="desc">根脉相承 · 生生不息</div>
+    </div>
+    <div id="viewTree"></div>
+  </div>
+</section>
+
+<!-- 墓园导航 -->
+<section class="block" id="s-grave">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="en">GRAVE LOCATION</div>
+      <h2>墓园导航</h2>
+      <div class="rule"></div>
+      <div class="desc">方位可循 · 后人可至</div>
+    </div>
+    <div id="viewGrave"></div>
+  </div>
+</section>
+
+<!-- 代祭预约 -->
+<section class="block alt" id="s-proxy">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="en">ENTRUSTED OFFERING</div>
+      <h2>代祭预约</h2>
+      <div class="rule"></div>
+      <div class="desc">身不能至 · 心向往之</div>
+    </div>
+    <div id="viewProxy"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="brand">家族纪念</div>
+  <div>资料保存于云端，全家族共享 · 慎终追远，民德归厚</div>
+</footer>
 
 <script>
 const API = "https://family-api.843302042.workers.dev";
 const SLUG = "linjia";
 let DATA = { family:null, ancestors:[], tributes:[] };
-let view = "home";
 
+/* 进入 */
 async function enter(){
   const v = document.getElementById("code").value.trim();
   const el = document.getElementById("gateErr");
@@ -74,9 +281,9 @@ async function enter(){
     if(v !== d.family.access_code){ el.textContent = "邀请码不正确，请向家人确认。"; return; }
     DATA = d;
     document.getElementById("gate").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
-    document.getElementById("famName").textContent = d.family.name + " · 纪念";
-    renderNav(); render();
+    document.getElementById("brandName").textContent = d.family.name;
+    document.getElementById("heroName").textContent = d.family.name;
+    renderAll();
   }catch(e){ el.textContent = "读取失败：" + e; }
 }
 
@@ -87,45 +294,44 @@ async function load(){
   return d;
 }
 
-const NAVS = [ ["home","先人纪念"], ["tree","家族关系"], ["grave","墓位导航"], ["proxy","代祭预约"] ];
-function renderNav(){
-  document.getElementById("nav").innerHTML = NAVS.map(function(n){
-    return '<button class="'+(view===n[0]?'on':'')+'" onclick="go(\''+n[0]+'\')">'+n[1]+'</button>';
-  }).join("");
-}
-function go(k){ view = k; renderNav(); render(); }
-
-function render(){
-  const f = { home:viewHome, tree:viewTree, grave:viewGrave, proxy:viewProxy }[view];
-  document.getElementById("view").innerHTML = f();
-}
-
-function icon(k){ return k==="flower"?"🌼":k==="candle"?"🕯":"✍"; }
 function esc(s){ return String(s==null?"":s).replace(/</g,"&lt;"); }
+function icon(k){ return k==="flower"?"🌼":k==="candle"?"🕯":"✍"; }
 
-function viewHome(){
-  if(!DATA.ancestors.length) return '<h2>先人纪念</h2><div class="card"><p class="muted">还没有录入先人资料，请在数据库中添加。</p></div>';
-  return '<h2>先人纪念</h2><div class="grid">' + DATA.ancestors.map(function(a){
+/* 渲染全部 */
+function renderAll(){
+  document.getElementById("viewHome").innerHTML = renderHome();
+  document.getElementById("viewTree").innerHTML = renderTree();
+  document.getElementById("viewGrave").innerHTML = renderGrave();
+  document.getElementById("viewProxy").innerHTML = renderProxy();
+}
+
+/* 先人 */
+function renderHome(){
+  const A = DATA.ancestors;
+  if(!A.length) return '<div class="empty">还没有录入先人资料。</div>';
+  return '<div class="grid">' + A.map(function(a){
     const ts = DATA.tributes.filter(function(t){ return t.ancestor_id===a.id; });
     const c = { flower:0, candle:0, message:0 };
     ts.forEach(function(t){ if(c[t.kind]!=null) c[t.kind]++; });
+    const surname = (a.name||"?").charAt(0);
     let h = '<div class="card">';
+    h += '<div class="seal">'+esc(surname)+'</div>';
     h += '<h3>'+esc(a.name)+'</h3>';
-    h += '<div class="muted">'+esc(a.gender)+' · '+esc(a.birth_date||"?")+(a.death_date?("—"+esc(a.death_date)):"（健在）")+' · '+esc(a.native_place)+'</div>';
-    h += '<div class="muted">'+esc(a.generation)+'</div>';
+    h += '<div class="meta">'+esc(a.gender||"")+' ｜ '+esc(a.birth_date||"?")+(a.death_date?(" — "+esc(a.death_date)):"（健在）")+(a.native_place?(" ｜ "+esc(a.native_place)):"")+'</div>';
+    if(a.generation) h += '<div class="meta">'+esc(a.generation)+'</div>';
     h += '<p class="bio">'+esc(a.biography)+'</p>';
     if(a.grave_name){
-      h += '<div class="grave"><b>墓位：</b>'+esc(a.grave_name)+'<br>'+esc(a.grave_note)+'<br>';
+      h += '<div class="grave"><b>墓位</b>　'+esc(a.grave_name)+'<br>'+esc(a.grave_note||"")+'<br>';
       h += '<a href="https://uri.amap.com/marker?position='+a.grave_lng+','+a.grave_lat+'&name='+encodeURIComponent(a.name)+'" target="_blank">一键导航前往 →</a></div>';
     }
     h += '<div class="acts">';
-    h += '<button onclick="tribute('+a.id+',\'flower\')">🌼 献花 ('+c.flower+')</button>';
-    h += '<button onclick="tribute('+a.id+',\'candle\')">🕯 点烛 ('+c.candle+')</button>';
-    h += '<button onclick="tribute('+a.id+',\'message\')">✍ 留言 ('+c.message+')</button>';
+    h += '<button onclick="tribute('+a.id+',\'flower\')">🌼 献花 '+c.flower+'</button>';
+    h += '<button onclick="tribute('+a.id+',\'candle\')">🕯 点烛 '+c.candle+'</button>';
+    h += '<button onclick="tribute('+a.id+',\'message\')">✍ 留言 '+c.message+'</button>';
     h += '</div>';
     if(ts.length){
-      h += '<div>' + ts.slice(0,3).map(function(t){
-        return '<div class="item">'+icon(t.kind)+' <b>'+esc(t.author)+'</b>：'+esc(t.content)+' <span class="muted">'+esc(t.created_at)+'</span></div>';
+      h += '<div class="logs">' + ts.slice(0,3).map(function(t){
+        return '<div class="row">'+icon(t.kind)+' <b>'+esc(t.author)+'</b>：'+esc(t.content)+'<span class="t">'+esc(t.created_at)+'</span></div>';
       }).join("") + '</div>';
     }
     h += '</div>';
@@ -142,44 +348,48 @@ async function tribute(id, kind){
       method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ ancestor_id:id, kind:kind, author:"访客", content:content })
     });
-    if(!r.ok) throw "post failed";
+    if(!r.ok) throw "fail";
     DATA = await load();
-    render();
+    renderAll();
   }catch(e){ alert("提交失败，请稍后再试。"); }
 }
 
-function viewTree(){
+/* 世系 */
+function renderTree(){
   const A = DATA.ancestors;
+  if(!A.length) return '<div class="empty">还没有先人资料。</div>';
   function node(a){
     const kids = A.filter(function(x){ return x.parent_id===a.id; });
-    return '<div>'+esc(a.name)+' <span class="muted">('+esc(a.generation)+')</span></div>'
-      + (kids.length ? '<div class="g">'+kids.map(node).join("")+'</div>' : '');
+    return '<div class="node">'+esc(a.name)+'<span class="g">'+esc(a.generation||"")+'</span>'
+      + (kids.length ? '<div class="kids">'+kids.map(node).join("")+'</div>' : '') + '</div>';
   }
   const roots = A.filter(function(a){ return !a.parent_id; });
-  if(!roots.length) return '<h2>家族关系</h2><div class="card"><p class="muted">还没有先人资料。</p></div>';
-  return '<h2>家族关系</h2><div class="tree">'+roots.map(node).join("")+'</div>';
+  return '<div class="card tree">'+roots.map(node).join("")+'</div>';
 }
 
-function viewGrave(){
+/* 墓位 */
+function renderGrave(){
   const list = DATA.ancestors.filter(function(a){ return a.grave_name; });
-  if(!list.length) return '<h2>墓位导航</h2><div class="card"><p class="muted">还没有录入墓位信息。</p></div>';
-  return '<h2>墓位导航</h2><div class="grid">' + list.map(function(a){
-    return '<div class="card"><h3>'+esc(a.name)+'</h3><div class="muted">'+esc(a.grave_name)+'</div>'
+  if(!list.length) return '<div class="empty">还没有录入墓位信息。</div>';
+  return '<div class="grid">' + list.map(function(a){
+    return '<div class="card"><div class="seal">'+esc((a.name||"?").charAt(0))+'</div>'
+      + '<h3>'+esc(a.name)+'</h3><div class="meta">'+esc(a.grave_name)+'</div>'
       + '<div class="grave">'+esc(a.grave_note||"位置待补充")+'<br>'
-      + '<a href="https://uri.amap.com/marker?position='+a.grave_lng+','+a.grave_lat+'&name='+encodeURIComponent(a.name+"墓位")+'" target="_blank">高德导航 →</a></div></div>';
+      + '<a href="https://uri.amap.com/marker?position='+a.grave_lng+','+a.grave_lat+'&name='+encodeURIComponent(a.name+" 墓位")+'" target="_blank">高德导航前往 →</a></div></div>';
   }).join("") + '</div>';
 }
 
-function viewProxy(){
-  let h = '<h2>代祭预约</h2><div class="card" style="max-width:560px">';
-  h += '<p class="muted">远在他乡或不便前往时，可在此登记，由家族指派的代祭人代为献花追思。</p>';
+/* 代祭 */
+function renderProxy(){
+  let h = '<div class="form">';
+  h += '<p class="desc" style="text-align:center;color:#7d735f;font-size:13px;margin-bottom:24px;letter-spacing:1px">远在他乡或不便前往时，可在此登记，由家族指派代祭人代为献花追思。</p>';
   h += '<label>您的称呼<input id="p_name" placeholder="如：林小满"></label>';
   h += '<label>联系方式<input id="p_contact" placeholder="手机 / 微信"></label>';
   h += '<label>想代祭的先人<select id="p_anc">' + DATA.ancestors.map(function(a){ return '<option value="'+a.id+'">'+esc(a.name)+'</option>'; }).join("") + '</select></label>';
   h += '<label>希望日期<input id="p_date" placeholder="如：2026-04-05"></label>';
-  h += '<label>心愿或要求<textarea id="p_wish" rows="3"></textarea></label>';
-  h += '<p><button class="btn" onclick="submitProxy()">提交登记</button></p>';
-  h += '<p id="p_msg" style="color:#9c7a3c"></p></div>';
+  h += '<label>心愿或要求<textarea id="p_wish" rows="4" placeholder="想说的话、想献的花等"></textarea></label>';
+  h += '<p style="text-align:center"><button class="submit" onclick="submitProxy()">提交登记</button></p>';
+  h += '<p class="msg" id="p_msg"></p></div>';
   return h;
 }
 
@@ -199,10 +409,23 @@ async function submitProxy(){
         preferred_date: document.getElementById("p_date").value.trim()
       })
     });
-    if(!r.ok) throw "post failed";
-    msg.textContent = "已登记，我们会尽快联系您。";
+    if(!r.ok) throw "fail";
+    msg.textContent = "已登记，我们会尽快与您联系。";
   }catch(e){ msg.textContent = "提交失败，请稍后再试。"; }
 }
+
+/* 导航与滚动 */
+function jump(id){
+  document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
+window.addEventListener("scroll", function(){
+  const nav = document.getElementById("topnav");
+  if(window.scrollY > window.innerHeight * 0.6) nav.classList.add("show");
+  else nav.classList.remove("show");
+});
+document.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !document.getElementById("gate").classList.contains("hidden")) enter();
+});
 </script>
 </body>
 </html>
