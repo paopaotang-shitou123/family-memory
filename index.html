@@ -230,3 +230,280 @@ footer .chinese{font-size:13px;color:rgba(243,236,221,.75);margin-bottom:6px}
     <div class="c" onclick="jump('s-home')"><div class="no">壹</div><div class="t">先人纪念</div><div class="d">生平 · 献花 · 追思</div></div>
     <div class="c" onclick="jump('s-tree')"><div class="no">貳</div><div class="t">家族世系</div><div class="d">代际 · 血脉 · 传承</div></div>
     <div class="c" onclick="jump('s-grave')"><div class="no">叁</div><div
+
+  <script>
+const API = "https://family-api.843302042.workers.dev";
+const SLUG = "linjia";
+let DATA = {family:null, ancestors:[], tributes:[]};
+
+function $(id){
+  return document.getElementById(id);
+}
+
+function esc(value){
+  return String(value == null ? "" : value).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+  });
+}
+
+async function loadData(){
+  const r = await fetch(API + "/api/data?family=" + SLUG);
+  const d = await r.json();
+  if(!r.ok || d.error) throw new Error(d.error || "读取失败");
+  return d;
+}
+
+async function enter(){
+  const input = $("code");
+  const error = $("gateErr");
+
+  error.textContent = "正在验证…";
+
+  try{
+    const data = await loadData();
+
+    if(input.value.trim() !== data.family.access_code){
+      error.textContent = "邀请码不正确，请向家人确认。";
+      return;
+    }
+
+    DATA = data;
+
+    $("gate").classList.add("hidden");
+    $("app").classList.remove("hidden");
+
+    if($("brandName")) $("brandName").textContent = data.family.name;
+    if($("heroName")) $("heroName").textContent = data.family.name;
+    if($("famName")) $("famName").textContent = data.family.name + " · 纪念";
+
+    renderAll();
+  }catch(errorObject){
+    console.error(errorObject);
+    error.textContent = "读取失败，请检查网络或稍后重试。";
+  }
+}
+
+function renderAll(){
+  if($("viewHome")) $("viewHome").innerHTML = renderHome();
+  if($("viewTree")) $("viewTree").innerHTML = renderTree();
+  if($("viewGrave")) $("viewGrave").innerHTML = renderGrave();
+  if($("viewProxy")) $("viewProxy").innerHTML = renderProxy();
+}
+
+function icon(kind){
+  if(kind === "flower") return "🌼";
+  if(kind === "candle") return "🕯";
+  return "✍";
+}
+
+function renderHome(){
+  const list = DATA.ancestors || [];
+
+  if(!list.length){
+    return '<div class="empty">还没有录入先人资料。</div>';
+  }
+
+  return '<div class="grid">' + list.map(function(a){
+    const records = DATA.tributes.filter(function(t){
+      return t.ancestor_id === a.id;
+    });
+
+    const count = {flower:0,candle:0,message:0};
+
+    records.forEach(function(t){
+      if(count[t.kind] !== undefined) count[t.kind]++;
+    });
+
+    let html = '<div class="card">';
+    html += '<div class="seal">' + esc((a.name || "?").charAt(0)) + '</div>';
+    html += '<h3>' + esc(a.name) + '</h3>';
+    html += '<div class="meta">';
+    html += esc(a.gender || "") + " · ";
+    html += esc(a.birth_date || "?");
+    html += a.death_date ? " — " + esc(a.death_date) : "（健在）";
+    html += " · " + esc(a.native_place || "");
+    html += '</div>';
+
+    if(a.generation){
+      html += '<div class="meta">' + esc(a.generation) + '</div>';
+    }
+
+    html += '<p class="bio">' + esc(a.biography || "") + '</p>';
+
+    if(a.grave_name){
+      html += '<div class="grave">';
+      html += '<b>墓位：</b>' + esc(a.grave_name) + '<br>';
+      html += esc(a.grave_note || "") + '<br>';
+      html += '<a target="_blank" href="https://uri.amap.com/marker?position='
+        + a.grave_lng + "," + a.grave_lat + '">一键导航前往 →</a>';
+      html += '</div>';
+    }
+
+    html += '<div class="acts">';
+    html += '<button onclick="tribute(' + a.id + ',\'flower\')">🌼 献花 ' + count.flower + '</button>';
+    html += '<button onclick="tribute(' + a.id + ',\'candle\')">🕯 点烛 ' + count.candle + '</button>';
+    html += '<button onclick="tribute(' + a.id + ',\'message\')">✍ 留言 ' + count.message + '</button>';
+    html += '</div>';
+
+    records.slice(0,3).forEach(function(t){
+      html += '<div class="logs">' + icon(t.kind) + " "
+        + esc(t.author || "访客") + "：" + esc(t.content || "") + '</div>';
+    });
+
+    html += '</div>';
+    return html;
+  }).join("") + '</div>';
+}
+
+function renderTree(){
+  const list = DATA.ancestors || [];
+
+  if(!list.length){
+    return '<div class="empty">还没有录入先人资料。</div>';
+  }
+
+  function node(person){
+    const children = list.filter(function(x){
+      return x.parent_id === person.id;
+    });
+
+    let html = '<div class="node">';
+    html += '<b>' + esc(person.name) + '</b> ';
+    html += '<span class="meta">' + esc(person.generation || "") + '</span>';
+
+    if(children.length){
+      html += '<div class="kids">';
+      html += children.map(node).join("");
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  const roots = list.filter(function(a){
+    return !a.parent_id;
+  });
+
+  return '<div class="card">' + roots.map(node).join("") + '</div>';
+}
+
+function renderGrave(){
+  const list = (DATA.ancestors || []).filter(function(a){
+    return a.grave_name;
+  });
+
+  if(!list.length){
+    return '<div class="empty">还没有录入墓位信息。</div>';
+  }
+
+  return '<div class="grid">' + list.map(function(a){
+    return '<div class="card">'
+      + '<div class="seal">' + esc((a.name || "?").charAt(0)) + '</div>'
+      + '<h3>' + esc(a.name) + '</h3>'
+      + '<div class="meta">' + esc(a.grave_name) + '</div>'
+      + '<div class="grave">' + esc(a.grave_note || "位置待补充") + '<br>'
+      + '<a target="_blank" href="https://uri.amap.com/marker?position='
+      + a.grave_lng + "," + a.grave_lat + '">打开地图导航 →</a>'
+      + '</div></div>';
+  }).join("") + '</div>';
+}
+
+function renderProxy(){
+  let html = '<div class="form">';
+  html += '<p class="hint">远在他乡或不便前往时，可登记代祭心愿。</p>';
+  html += '<label>您的称呼<input id="proxyName"></label>';
+  html += '<label>联系方式<input id="proxyContact"></label>';
+  html += '<label>先人<select id="proxyAncestor">';
+
+  html += (DATA.ancestors || []).map(function(a){
+    return '<option value="' + a.id + '">' + esc(a.name) + '</option>';
+  }).join("");
+
+  html += '</select></label>';
+  html += '<label>希望日期<input id="proxyDate"></label>';
+  html += '<label>心愿<textarea id="proxyWish" rows="4"></textarea></label>';
+  html += '<button class="submit" onclick="submitProxy()">提交登记</button>';
+  html += '<p id="proxyMessage" class="hint"></p>';
+  html += '</div>';
+
+  return html;
+}
+
+async function tribute(ancestorId, kind){
+  let content = "献上一束花。";
+
+  if(kind === "candle"){
+    content = "点一支心灯。";
+  }
+
+  if(kind === "message"){
+    content = prompt("写下您的追思：") || "";
+    if(!content) return;
+  }
+
+  try{
+    const response = await fetch(API + "/api/tribute",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        ancestor_id:ancestorId,
+        kind:kind,
+        author:"访客",
+        content:content
+      })
+    });
+
+    if(!response.ok) throw new Error("提交失败");
+
+    DATA = await loadData();
+    renderAll();
+  }catch(error){
+    alert("提交失败，请稍后再试。");
+  }
+}
+
+async function submitProxy(){
+  const name = $("proxyName").value.trim();
+  const message = $("proxyMessage");
+
+  if(!name){
+    message.textContent = "请先填写您的称呼。";
+    return;
+  }
+
+  try{
+    const response = await fetch(API + "/api/proxy",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        family_id:DATA.family.id,
+        ancestor_id:$("proxyAncestor").value || null,
+        contact:$("proxyContact").value.trim(),
+        wish:$("proxyWish").value.trim(),
+        preferred_date:$("proxyDate").value.trim()
+      })
+    });
+
+    if(!response.ok) throw new Error("提交失败");
+
+    message.textContent = "已登记，我们会尽快联系您。";
+  }catch(error){
+    message.textContent = "提交失败，请稍后再试。";
+  }
+}
+
+document.addEventListener("DOMContentLoaded",function(){
+  const input = $("code");
+  const button = document.querySelector("#gate button");
+
+  if(button) button.onclick = enter;
+  if(input){
+    input.addEventListener("keydown",function(event){
+      if(event.key === "Enter") enter();
+    });
+  }
+});
+</script>
+</body>
+</html>
